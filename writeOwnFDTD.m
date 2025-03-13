@@ -1,3 +1,5 @@
+% Modeled after 1D Example FDTD algorithm given by Chien Chao, National Taiwan University, 3/13/2025 Numerical Methods class
+
 clc;clear;close all;
 
 % simulation x length and time length
