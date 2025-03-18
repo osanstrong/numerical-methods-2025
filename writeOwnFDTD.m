@@ -2,20 +2,20 @@
 
 clc;clear;close all;
 
-% simulation x length and time length
+% Simulation x length and time length
 max_space = 401;
 max_time = 150;
 
-% consts
+% Consts
 mu = pi*4e-7;
 elp = 8.85e-12;
 c = sqrt(1/mu/elp); 
 
-% params
+% Params
 wl = 523e-9;   %500nm
 freq = c/wl;
 
-% units
+% Units
 dx = wl/20;
 dy = dx;
 dt = 1/c*((1/dx)^2+(1/dy)^2)^-0.5; %Stability Conditions
@@ -33,7 +33,7 @@ spread=15;                                                %Gaussian  width
 Ez(2:max_space,1)= exp(-(t0-(2:max_space)).^2/spread^2);  %Gaussian  function
 
 
-% Run simulation
+% Run simulation, display Ez after every timestep
 
 for n=1:max_time
     %t=0.5
