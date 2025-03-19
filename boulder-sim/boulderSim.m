@@ -89,6 +89,11 @@ function cross = cross2d(a, b)
     cross = a(1,1)*b(1,2) - a(1,2)*b(1,1);
 end
 
+% Same as cross2d(a,b) but for vertical or 1d vectors
+function cross = cross2dV(a, b)
+    cross = a(1)*b(2) - a(2)*b(1)
+end
+
 % Calculate velocities of a rigidbody against a horizontal surface (e.g.
 % y=0, given:
 % v0: Initial velocity (2x1 matrix x, y)
@@ -100,18 +105,41 @@ end
 % restitution: coefficient of restitution, i.e. elasticity of the
 % collision. Currently assumed to be 0 (inelastic)
 % Cuttently assumed to be non-slip.
-function vels = velsAfterHittingGround(v0, w0, m, I, collisionPoint, CM, restitution)
-    %Linear impulse
-    dv = v0(:,:)*-1; %This is where we would add effects of it being elastic
-    v=v0+dv;
-    impulse = dv*m;
-    %Rotational impulse
-    r=collisionPoint-CM;
-    rotImp = cross2d(r,impulse);
-    dw = rotImp/I;
-    w=w0+dw;
-    vels.v = v;
-    vels.w = w;
+function vels = velsAfterHittingGround(v0_cm, w0, m, I, collisionPoint, CM, restitution)
+    % Define terms
+    r = collisionPoint - CM; % Radius from CM to collision point
+    r_rot = r * [0,-1;1,0];  % Radius rotated 90⁰ counterclockwise, i.e. direction of rotational velocity
+    u_par = [1;0]; %Unit vector parallel to surface (for now just x vector)
+    u_nor = [0;1]; %Unit vector normal to surface (for now just y vector)
+    rr_par = dot(r_rot, u_par); %Parallel component of r_rot
+    rr_nor = dot(r_rot, u_nor); %Normal component of r_rot
+    r_cpar = cross2dV(r, u_par); % r cross par
+    r_cnor = cross2dV(r, u_nor);
+
+
+    v0_net = v0_cm + r_rot*w0; % Initial net velocity
+    v1_net = [v0_net(1,1),v0_net(1,2)*restitution*-1]; % Final net velocity; Includes both CM and rotational velocity Initial implementation: assume it sticks entirely
+    
+    b = [dot(v1_net, u_par) - dot(v0_cm, u_par) - rr_par*w0;
+         dot(v1_net, u_nor) - dot(v0_cm, u_nor) - rr_nor*w0];
+    A = [(1/m) + rr_par*(r_cpar/I), rr_par*(r_cnor/I);
+         rr_nor*(r_cpar/I), (1/m) + rr_nor*(r_cnor/I)];
+    impulse = linsolve(A, b);
+    disp(impulse)
+    
+    dw = cross2dV(r, impulse)/I;
+    dv = impulse / m;
+    disp("dv: " + dv)
+    disp("dw: " + dw)
+    disp("v_cm: " + v0_cm)
+
+    v0_net_actual = v0_cm + r_rot*w0
+    v1_net_actual = v0_cm + transpose(dv) + r_rot*(w0+dw)
+    pause
+
+
+    vels.v = v0_cm + transpose(dv);
+    vels.w = w0 + dw;
 end
 % Input point as [x y;], theta in radians
 function pos1 = rotatePoint(origin, pos0, theta)
@@ -133,9 +161,9 @@ wx=[window(1), window(1), window(2), window(2)];
 wy=[window(3), window(3), window(4), window(4)];
 wc = [0,1,1];
 
-sim_time = 20; % seconds
-dt = 0.001; % timestep, in seconds
-slowdown = 10; %What factor to slow down the simulation by
+sim_time = 0.5; % seconds
+dt = 0.01; % timestep, in seconds
+slowdown = 1; %What factor to slow down the simulation by
 
 
 v = v0;
@@ -159,6 +187,10 @@ for t = 0:dt:sim_time
     fallingCM = fallingCM + dp;
     dTheta = w*dt;
     for i = 1:1:numPoints
+        disp(fallingBoulder(i,:))
+        disp("boulder")
+        disp(dp)
+        disp("dp")
         fallingBoulder(i,:) = fallingBoulder(i,:)+dp;
         fallingBoulder(i,:) = rotatePoint(fallingCM, fallingBoulder(i,:), dTheta);
     end
@@ -180,7 +212,7 @@ for t = 0:dt:sim_time
             fallingBoulder(i,:) = fallingBoulder(i,:)+dp;
         end
         %Apply changes in velocity
-        newVel = velsAfterHittingGround(v, w, m, I, target, fallingCM, 0);
+        newVel = velsAfterHittingGround(v, w, m, I, target, fallingCM, 1);
         v = newVel.v;
         w = newVel.w;
         disp("Velocity: "+mat2str(v))
