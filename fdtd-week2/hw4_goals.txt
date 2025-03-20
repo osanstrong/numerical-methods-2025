@@ -1,0 +1,7 @@
+Model a perfect conductor 
+Chunk of light (Gaussian Pulse) impinge upon the conductor
+The E-Field at that boundary will be 0
+it should reflect
+
+Look up 2d FDTD code, reflecting off of a mirror
+Produce and represent a simulation video chunk of light reflects 
