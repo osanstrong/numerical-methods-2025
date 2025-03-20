@@ -5,3 +5,8 @@ it should reflect
 
 Look up 2d FDTD code, reflecting off of a mirror
 Produce and represent a simulation video chunk of light reflects 
+
+References:
+https://eecs.wsu.edu/~schneidj/ufdtd/chap8.pdf
+https://github.com/WaywardPhoton/2-D-FDTD/blob/master/
+https://www.youtube.com/watch?v=pAjg_odI_YQ
