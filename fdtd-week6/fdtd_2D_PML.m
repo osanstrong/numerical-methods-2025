@@ -91,50 +91,15 @@ F=(dt/dxy)./(ep+0.5*dt*sigy);
 %And now, the moment you've all been waiting for: The time loop begins
 for n=1:1:MT
 
-    %Coordinates of updates
-    % Setting time dependent boundaries to update only relevant parts of the 
-    % matrix where the wave has reached to avoid unnecessary updates.
-    %if n<center_x-2
-    %    n1=center_x-n-1;
-    %else
-    %    n1=1;
-    %end
-    %if n<MX-1-center_x
-    %    n2=center_x+n;
-    %else
-    %    n2=MX-1;
-    %end
-    %if n<center_y-2
-    %    n11=center_y-n-1;
-    %else
-    %    n11=1;
-    %end
-    %if n<MY-1-center_y
-    %    n21=center_y+n;
-    %else
-    %    n21=MY-1;
-    %end
-    n1=1;
-    n2=MX-1;
-    n11=1;
-    n21=MY-1;
-
     %Update equation for Hx and Hy
-    %Vectorized update in one line instead of for loop
-    Hy(n1:n2,n11:n21)=A(n1:n2,n11:n21).*Hy(n1:n2,n11:n21)+B(n1:n2,n11:n21).*(Ezx(n1+1:n2+1,n11:n21)-Ezx(n1:n2,n11:n21)+Ezy(n1+1:n2+1,n11:n21)-Ezy(n1:n2,n11:n21));
-    Hx(n1:n2,n11:n21)=G(n1:n2,n11:n21).*Hx(n1:n2,n11:n21)-H(n1:n2,n11:n21).*(Ezx(n1:n2,n11+1:n21+1)-Ezx(n1:n2,n11:n21)+Ezy(n1:n2,n11+1:n21+1)-Ezy(n1:n2,n11:n21));
+    %Vectorized update in one line instead of for loo
+    Hy(1:MX-1,1:MY-1)=A(1:MX-1,1:MY-1).*Hy(1:MX-1,1:MY-1)+B(1:MX-1,1:MY-1).*(Ezx(2:MX,1:MY-1)-Ezx(1:MX-1,1:MY-1)+Ezy(2:MX,1:MY-1)-Ezy(1:MX-1,1:MY-1));
+    Hx(1:MX-1,1:MY-1)=G(1:MX-1,1:MY-1).*Hx(1:MX-1,1:MY-1)-H(1:MX-1,1:MY-1).*(Ezx(1:MX-1,2:MY)-Ezx(1:MX-1,1:MY-1)+Ezy(1:MX-1,2:MY)-Ezy(1:MX-1,1:MY-1));
 
     %Likewise update equation for Ez field
     Ezx(2:MX,2:MY)=C(2:MX,2:MY).*Ezx(2:MX,2:MY)+D(2:MX,2:MY).*(-Hx(2:MX,2:MY)+Hx(2:MX,1:MY-1));
     Ezy(2:MX,2:MY)=E(2:MX,2:MY).*Ezy(2:MX,2:MY)+F(2:MX,2:MY).*(Hy(2:MX,2:MY)-Hy(1:MX-1,2:MY));
 
-    %matrix update instead of for-loop for Hy and Hx fields
-    %Hy(n1:n2,n11:n21)=A(n1:n2,n11:n21).*Hy(n1:n2,n11:n21)+B(n1:n2,n11:n21).*(Ezx(n1+1:n2+1,n11:n21)-Ezx(n1:n2,n11:n21)+Ezy(n1+1:n2+1,n11:n21)-Ezy(n1:n2,n11:n21));
-    %Hx(n1:n2,n11:n21)=G(n1:n2,n11:n21).*Hx(n1:n2,n11:n21)-H(n1:n2,n11:n21).*(Ezx(n1:n2,n11+1:n21+1)-Ezx(n1:n2,n11:n21)+Ezy(n1:n2,n11+1:n21+1)-Ezy(n1:n2,n11:n21));
-    
-    %matrix update instead of for-loop for Ez field
-    %Ezx(n1+1:n2+1,n11+1:n21+1)=C(n1+1:n2+1,n11+1:n21+1).*Ezx(n1+1:n2+1,n11+1:n21+1)+D(n1+1:n2+1,n11+1:n21+1).*(-Hx(n1+1:n2+1,n11+1:n21+1)+Hx(n1+1:n2+1,n11:n21));
-    %Ezy(n1+1:n2+1,n11+1:n21+1)=E(n1+1:n2+1,n11+1:n21+1).*Ezy(n1+1:n2+1,n11+1:n21+1)+F(n1+1:n2+1,n11+1:n21+1).*(Hy(n1+1:n2+1,n11+1:n21+1)-Hy(n1:n2,n11+1:n21+1));
     
 
     %Update with gaussian source at start
