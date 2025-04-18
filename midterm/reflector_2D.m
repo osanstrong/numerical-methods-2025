@@ -73,20 +73,19 @@ end
 sig_starx=(sigx.*mu)./ep;
 sig_stary=(sigy.*mu)./ep;
 
-%Multiplicartion factor matrices for updating the H matrices instead of
-%doing so every frame
-G=((mu-0.5*dt*sig_starx)./(mu+0.5*dt*sig_starx));
+%Factor layers for H field
+G=(mu-0.5*dt*sig_starx)./(mu+0.5*dt*sig_starx);
 H=(dt/dxy)./(mu+0.5*dt*sig_starx);
-A=((mu-0.5*dt*sig_stary)./(mu+0.5*dt*sig_stary));
+A=(mu-0.5*dt*sig_stary)./(mu+0.5*dt*sig_stary);
 B=(dt/dxy)./(mu+0.5*dt*sig_stary);
 
-%Multiplication factor matrices for E matrix
-C=((ep-0.5*dt*sigx)./(ep+0.5*dt*sigx));
+%Factor layers for E Field
+C=(ep-0.5*dt*sigx)./(ep+0.5*dt*sigx);
 D=(dt/dxy)./(ep+0.5*dt*sigx);
-E=((ep-0.5*dt*sigy)./(ep+0.5*dt*sigy));
+E=(ep-0.5*dt*sigy)./(ep+0.5*dt*sigy);
 F=(dt/dxy)./(ep+0.5*dt*sigy);
 
-%Special case: reflective surface at edge. This surface starts near the
+%Focus of the assignment: reflective surface at edge. This surface starts near the
 %bottom right corner, and proceeds up at a given incidence angle until the
 %top of the screen.
 reflector=ones(MX,MY);
@@ -120,7 +119,7 @@ Ezy(1:MX,1:MY)=0.5*Ez(1:MX,1:MY);
 for n=1:1:MT
 
     %Update equation for Hx and Hy
-    %Vectorized update in one line instead of for loo
+    %Vectorized update in one line instead of for loop
     Hy(1:MX-1,1:MY-1)=A(1:MX-1,1:MY-1).*Hy(1:MX-1,1:MY-1)+B(1:MX-1,1:MY-1).*(Ezx(2:MX,1:MY-1)-Ezx(1:MX-1,1:MY-1)+Ezy(2:MX,1:MY-1)-Ezy(1:MX-1,1:MY-1));
     Hx(1:MX-1,1:MY-1)=G(1:MX-1,1:MY-1).*Hx(1:MX-1,1:MY-1)-H(1:MX-1,1:MY-1).*(Ezx(1:MX-1,2:MY)-Ezx(1:MX-1,1:MY-1)+Ezy(1:MX-1,2:MY)-Ezy(1:MX-1,1:MY-1));
 
@@ -131,12 +130,11 @@ for n=1:1:MT
     %Impose reflector boundary at angle
     Ezx=Ezx.*reflector;
     Ezy=Ezy.*reflector;
-
-
+    
+    %Update combined Ez field to view
     Ez=Ezx+Ezy;
 
     %Contour Plot of Ez
-    %colorplot(dxy*1e+6*(1:1:MX),(dxy*1e+6*(1:1:MY))',Ez',[-1,1]);
     
     s=surf(X,Y,Ez');
     s.EdgeAlpha=0.1;
@@ -146,13 +144,12 @@ for n=1:1:MT
     adjust_y=(MX-MY)/2;
     axis([0 MX -adjust_y MY+adjust_y -MZ MZ])
     clim([-MC MC]);
-    view(15,60)
+    angle_deg=15;
+    azimuth_def=60;
+    view(angle_deg,azimuth_def)
     pause(0.001);
     
-    title(['\fontsize{20}Ez impinging upon ',num2str(incidence_angle),'⁰ Reflector']); 
-    %xlabel('x (in um)','FontSize',20);
-    %ylabel('y (in um)','FontSize',20);
+    title(['\fontsize{20}Ez impinging upon ',num2str(incidence_angle),'⁰ Reflector']);
     set(gca,'FontSize',20);
-    %getframe;
 end
 
