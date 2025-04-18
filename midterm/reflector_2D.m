@@ -1,4 +1,4 @@
-% PML portion of code written largely following along with https://www.mathworks.com/matlabcentral/fileexchange/35576-2d-fdtd-of-a-region-with-perfect-electric-conductor-boundary?s_tid=FX_rc1_behav
+% PML portion of code written largely following along https://www.mathworks.com/matlabcentral/fileexchange/35576-2d-fdtd-of-a-region-with-perfect-electric-conductor-boundary?s_tid=FX_rc1_behav
 clc;clear;close all;
 
 %Grid Dimensions
@@ -25,15 +25,14 @@ dxy=1e-6;
 S=2^-0.5;
 dt=S*dxy/c;
 
-%Field matrices (I actually don't know why Ez is split up into x and y we
-%should find out
+%Field matrices
 Ez=zeros(MX,MY);
 Ezx=zeros(MX,MY);
 Ezy=zeros(MX,MY);
 Hx=zeros(MX,MY);
 Hy=zeros(MX,MY);
 
-%Matrices of permittivity and permeability constants
+%Permittivity and permeability constants, stored in matrices for
 ep=ep0*ones(MX,MY);
 mu=mu0*ones(MX,MY);
 
@@ -55,10 +54,10 @@ max_refl=1e-6;
 sigma_order=6;
 %Polynomial σ model
 sigma_max=(-log10(max_refl)*(sigma_order+1)*ep0*c)/(2*bound_width*dxy);
-bound_fact_1=((ep(MX/2,bound_width)/ep0)*sigma_max)/((bound_width^sigma_order)*(sigma_order+1));
-bound_fact_2=((ep(MX/2,MY-bound_width)/ep0)*sigma_max)/((bound_width^sigma_order)*(sigma_order+1));
-bound_fact_3=((ep(bound_width,MY/2)/ep0)*sigma_max)/((bound_width^sigma_order)*(sigma_order+1));
-bound_fact_4=((ep(MX-bound_width,MY/2)/ep0)*sigma_max)/((bound_width^sigma_order)*(sigma_order+1));
+bound_fact_1=(sigma_max)/((bound_width^sigma_order)*(sigma_order+1));
+bound_fact_2=(sigma_max)/((bound_width^sigma_order)*(sigma_order+1));
+bound_fact_3=(sigma_max)/((bound_width^sigma_order)*(sigma_order+1));
+bound_fact_4=(sigma_max)/((bound_width^sigma_order)*(sigma_order+1));
 x=0:1:bound_width;
 for i=1:1:MX
     sigx(i,bound_width+1:-1:1)=bound_fact_1*((x+0.5*ones(1,bound_width+1)).^(sigma_order+1)-(x-0.5*[0 ones(1,bound_width)]).^(sigma_order+1));
@@ -133,44 +132,6 @@ for n=1:1:MT
     Ezx=Ezx.*reflector;
     Ezy=Ezy.*reflector;
 
-    
-
-    %Update with gaussian source at start
-    gauss=true;
-    amp_multiplier=5;
-    two_sources=false;
-    if two_sources
-        truncate=42;
-        if n<=truncate %Why 42?
-            Ezx(left_x,center_y)=amp_multiplier*(10-15*cos(n*pi/20)+6*cos(2*n*pi/20)-cos(3*n*pi/20))/64;
-            Ezy(left_x,center_y)=amp_multiplier*(10-15*cos(n*pi/20)+6*cos(2*n*pi/20)-cos(3*n*pi/20))/64;
-
-            Ezx(right_x,center_y)=amp_multiplier*(10-15*cos(n*pi/20)+6*cos(2*n*pi/20)-cos(3*n*pi/20))/64;
-            Ezy(right_x,center_y)=amp_multiplier*(10-15*cos(n*pi/20)+6*cos(2*n*pi/20)-cos(3*n*pi/20))/64;   
-        elseif n<=2*truncate
-            na=n-truncate;
-            Ezx(left_x,center_y)=-amp_multiplier*(10-15*cos(na*pi/20)+6*cos(2*na*pi/20)-cos(3*na*pi/20))/64;
-            Ezy(left_x,center_y)=-amp_multiplier*(10-15*cos(na*pi/20)+6*cos(2*na*pi/20)-cos(3*na*pi/20))/64;
-
-            Ezx(right_x,center_y)=-amp_multiplier*(10-15*cos(na*pi/20)+6*cos(2*na*pi/20)-cos(3*na*pi/20))/64;
-            Ezy(right_x,center_y)=-amp_multiplier*(10-15*cos(na*pi/20)+6*cos(2*na*pi/20)-cos(3*na*pi/20))/64; 
-        else
-            Ezx(left_x,center_y)=0;
-            Ezy(left_x,center_y)=0;
-
-            Ezx(right_x,center_y)=0;
-            Ezy(right_x,center_y)=0;
-        end
-    elseif false
-        if n<=42 %Why 42?
-            Ezx(center_x,center_y)=amp_multiplier*(10-15*cos(n*pi/20)+6*cos(2*n*pi/20)-cos(3*n*pi/20))/64;
-            Ezy(center_x,center_y)=amp_multiplier*(10-15*cos(n*pi/20)+6*cos(2*n*pi/20)-cos(3*n*pi/20))/64;
-        else
-            Ezx(center_x,center_y)=0;
-            Ezy(center_x,center_y)=0;
-        end
-    end
-
 
     Ez=Ezx+Ezy;
 
@@ -188,10 +149,10 @@ for n=1:1:MT
     view(15,60)
     pause(0.001);
     
-    %title(['\fontsize{20}Colour-scaled image plot of Ez in a spatial domain with PML boundary and at time = ',num2str(round(n*dt*1e+15)),' fs']); 
+    title(['\fontsize{20}Ez impinging upon ',num2str(incidence_angle),'⁰ Reflector']); 
     %xlabel('x (in um)','FontSize',20);
     %ylabel('y (in um)','FontSize',20);
-    %set(gca,'FontSize',20);
+    set(gca,'FontSize',20);
     %getframe;
 end
 
