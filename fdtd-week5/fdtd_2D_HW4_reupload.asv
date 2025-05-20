@@ -1,0 +1,66 @@
+clc;clear;close all;
+
+%Grid Dimensions
+MX=200; %Max x
+MY=200; %Max y
+%Timestep count
+MT=500; %Max time, number of timesteps
+
+%Source locations, center and overlapping
+center_x=MX/2;
+center_y=MY/2;
+left_x=floor(MX/3);
+right_x=MX-left_x;
+
+%Physical parameters of free space
+ep0=(1/(36*pi))*1e-9; %Vacuum permutivity, F/m
+mu0=4*pi*1e-7; %Vacuum permeability, N/A²
+c=3e+8; %Speed of light, m/s
+
+%Set arbitrary dx/dy/etc of uniform 1 micron
+dxy=1e-6;
+
+%Courant Stability Condition to determine timestep
+S=2^-0.5;
+dt=S*dxy/c;
+
+Eeta=dt/dxy/elp;     %updating variable   
+Heta=dt/dx/mu;      %updating variable
+
+%Field matrices 
+Ez=zeros(MX,MY);
+Hx=zeros(MX,MY);
+Hy=zeros(MX,MY);
+
+%Initial condition: Gaussian pulse
+amp=2;
+x0=MX/2;
+y0=MY/2;
+spread=10;
+Ez(1:MX,1:MY) = amp*exp(-((x0-X)'.^2+(y0-Y)'.^2)/spread^2);%Initial gaussian pulse
+Ezx(1:MX,1:MY)=0.5*Ez(1:MX,1:MY);
+Ezy(1:MX,1:MY)=0.5*Ez(1:MX,1:MY);
+
+
+
+%And now, the moment you've all been waiting for: The time loop begins
+for n=1:1:MT
+
+    %Update equation for Hx and Hy
+    %Vectorized update in one line instead of for loo
+    Hy(1:MX-1,1:MY-1)=Hy(1:MX-1,1:MY-1)+Heta*(Ez(2:MX,1:MY-1)-Ez(1:MX-1,1:MY-1));
+    Hx(1:MX-1,1:MY-1)=Hx(1:MX-1,1:MY-1)-Heta*(Ez(1:MX-1,2:MY)-Ez(1:MX-1,1:MY-1));
+
+    %Likewise update equation for Ez field
+    Ez(2:MX,2:MY)=Ez(2:MX,2:MY)+Eeta*(-Hx(2:MX,2:MY)+Hx(2:MX,1:MY-1) + Hy(2:MX,2:MY)-Hy(1:MX-1,2:MY));
+
+    
+
+    %Display color plot of Ez
+    imagesc(dxy*1e+6*(1:1:MX),(dxy*1e+6*(1:1:MY))',Ez',[-1,1]);colorbar;
+    title(['\fontsize{20}Ez, time = ',num2str(round(n*dt*1e+15)),' timesteps (',num2str(dt),'s)']); 
+    xlabel('x (in um)','FontSize',20);
+    ylabel('y (in um)','FontSize',20);
+    set(gca,'FontSize',20);
+    getframe;
+end
